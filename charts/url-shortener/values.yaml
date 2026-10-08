@@ -6,7 +6,7 @@ backend:
   replicas: 2
   image:
     repository: ghcr.io/balawovdima-dev/url-shortener-backend
-    tag: latest # pin to a git SHA per deploy: --set backend.image.tag=<sha>
+    tag: latest # overridden per environment in values-<env>.yaml with a git SHA
     pullPolicy: "" # empty = Kubernetes default (Always for :latest)
   containerPort: 8000
   # Secret with DATABASE_URL, created outside the chart so credentials never land in release history.

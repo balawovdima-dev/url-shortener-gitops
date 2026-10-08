@@ -3,9 +3,13 @@
 publicUrl: https://dev.supabase.win
 
 backend:
+  image:
+    tag: e258dc3 # urlshortener-pet commit; dev first, then promote to prod
   replicas: 2
 
 frontend:
+  image:
+    tag: e258dc3
   replicas: 1
 
 ingress:
