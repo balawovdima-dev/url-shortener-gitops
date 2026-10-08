@@ -1,0 +1,36 @@
+# The one alert that pages: the backend is failing a noticeable share of
+# real requests. team=url-shortener routes it to Telegram (Alertmanager config
+# in monitoring/values/kube-prometheus-stack.yaml).
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: url-shortener
+  namespace: monitoring
+spec:
+  groups:
+    - name: url-shortener
+      rules:
+        - alert: UrlShortenerHighErrorRate
+          # 5xx share of backend requests over the last 5 minutes, per
+          # environment, above 5%. The second condition (> 6 requests/min)
+          # keeps one failed request in a quiet night from reading as 100%.
+          expr: |
+            (
+              sum by (namespace) (rate(http_requests_total{job="backend", status="5xx"}[5m]))
+              /
+              sum by (namespace) (rate(http_requests_total{job="backend"}[5m]))
+            ) > 0.05
+            and
+            sum by (namespace) (rate(http_requests_total{job="backend"}[5m])) > 0.1
+          # Must hold for 2 more minutes: one bad scrape doesn't wake anyone up.
+          for: 2m
+          labels:
+            severity: critical
+            team: url-shortener
+          annotations:
+            summary: 'Backend error rate {{ $value | humanizePercentage }} (threshold 5%)'
+            description: >-
+              More than 5% of backend requests in {{ $labels.namespace }} return
+              5xx over the last 5 minutes. Grafana: dashboard "URL shortener",
+              environment {{ $labels.namespace }}; logs: Explore, Loki,
+              {namespace="{{ $labels.namespace }}", app="backend"}.

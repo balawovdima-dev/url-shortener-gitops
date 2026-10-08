@@ -26,6 +26,9 @@ spec:
           {{- include "url-shortener.ingressPath" (dict "path" "/" "type" "Exact" "svc" "frontend") | nindent 10 }}
           {{- include "url-shortener.ingressPath" (dict "path" "/_next" "type" "Prefix" "svc" "frontend") | nindent 10 }}
           {{- include "url-shortener.ingressPath" (dict "path" "/favicon.ico" "type" "Exact" "svc" "frontend") | nindent 10 }}
+          # Metrics are for Prometheus, which scrapes the pods directly: from
+          # the internet, /metrics lands on the frontend and gets a 404.
+          {{- include "url-shortener.ingressPath" (dict "path" "/metrics" "type" "Exact" "svc" "frontend") | nindent 10 }}
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress

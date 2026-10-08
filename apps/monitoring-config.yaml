@@ -1,0 +1,32 @@
+# Our observability config: ServiceMonitor, alert rule, Grafana dashboard
+# (monitoring/config). Needs the CRDs from apps/monitoring.yaml; until they
+# exist the first sync fails and is retried.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: monitoring-config
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/balawovdima-dev/url-shortener-gitops.git
+    targetRevision: main
+    path: monitoring/config
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: monitoring
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - SkipDryRunOnMissingResource=true
+    retry:
+      limit: 10
+      backoff:
+        duration: 30s
+        factor: 2
+        maxDuration: 5m

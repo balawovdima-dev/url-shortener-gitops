@@ -1,0 +1,20 @@
+# Prometheus scrapes /metrics of every backend pod in both environments
+# straight from the pods (the public Ingress hides /metrics). The job label
+# is the Service name, "backend"; namespace tells dev from prod.
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: url-shortener-backend
+  namespace: monitoring
+spec:
+  namespaceSelector:
+    matchNames:
+      - url-shortener-dev
+      - url-shortener-prod
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: backend
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 15s

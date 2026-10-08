@@ -1,0 +1,101 @@
+# kube-prometheus-stack (apps/monitoring.yaml): Prometheus, Alertmanager,
+# Grafana, kube-state-metrics, node-exporter. Sized for one t3.large node.
+
+# k3s runs the control plane inside the k3s process: there are no separate
+# etcd/scheduler/controller-manager/proxy endpoints to scrape. Left on, they
+# only produce "target down" noise.
+kubeEtcd:
+  enabled: false
+kubeControllerManager:
+  enabled: false
+kubeScheduler:
+  enabled: false
+kubeProxy:
+  enabled: false
+
+prometheus:
+  prometheusSpec:
+    retention: 7d
+    retentionSize: 8GB
+    # Pick up ServiceMonitors/PrometheusRules from monitoring/config, not only
+    # the ones labelled with this Helm release.
+    serviceMonitorSelectorNilUsesHelmValues: false
+    podMonitorSelectorNilUsesHelmValues: false
+    ruleSelectorNilUsesHelmValues: false
+    resources:
+      requests:
+        cpu: 100m
+        memory: 512Mi
+      limits:
+        memory: 1536Mi
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: local-path
+          accessModes: [ReadWriteOnce]
+          resources:
+            requests:
+              storage: 10Gi
+
+alertmanager:
+  alertmanagerSpec:
+    # Created by url-shortener-infra's bootstrap from ~/.config/urlshortener.env;
+    # mounted at /etc/alertmanager/secrets/alertmanager-telegram/.
+    secrets:
+      - alertmanager-telegram
+    resources:
+      requests:
+        cpu: 10m
+        memory: 64Mi
+      limits:
+        memory: 128Mi
+  config:
+    route:
+      group_by: [alertname, namespace]
+      group_wait: 30s
+      group_interval: 5m
+      repeat_interval: 4h
+      # Everything the stack alerts on by default goes nowhere for now; only
+      # our service's alerts page a human.
+      receiver: "null"
+      routes:
+        - receiver: telegram
+          matchers:
+            - team="url-shortener"
+    receivers:
+      - name: "null"
+      - name: telegram
+        telegram_configs:
+          - bot_token_file: /etc/alertmanager/secrets/alertmanager-telegram/bot_token
+            chat_id: 332831039 # not a secret: without the bot token nobody can post here
+            send_resolved: true
+            parse_mode: HTML
+            message: |-
+              {{ if eq .Status "firing" }}🔥 FIRING{{ else }}✅ RESOLVED{{ end }}: {{ .CommonLabels.alertname }}
+              {{ range .Alerts }}<b>{{ .Labels.namespace }}</b>: {{ .Annotations.summary }}
+              {{ .Annotations.description }}
+              {{ end }}
+    inhibit_rules: []
+
+grafana:
+  # Random passwords from the chart would change on every ArgoCD render; this
+  # Secret is created once by the infra bootstrap.
+  admin:
+    existingSecret: grafana-admin
+  persistence:
+    enabled: false # dashboards come from git, nothing to keep
+  sidecar:
+    dashboards:
+      searchNamespace: ALL
+  additionalDataSources:
+    - name: Loki
+      uid: loki
+      type: loki
+      url: http://loki.monitoring.svc:3100
+      access: proxy
+  resources:
+    requests:
+      cpu: 50m
+      memory: 192Mi
+    limits:
+      memory: 384Mi

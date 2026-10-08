@@ -1,0 +1,16 @@
+# Synced by apps/monitoring-config.yaml: what to scrape, when to alert, and
+# the Grafana dashboard (picked up by Grafana's sidecar via the label).
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: monitoring
+resources:
+  - servicemonitor-backend.yaml
+  - prometheusrule.yaml
+configMapGenerator:
+  - name: dashboard-url-shortener
+    files:
+      - dashboards/url-shortener.json
+    options:
+      disableNameSuffixHash: true
+      labels:
+        grafana_dashboard: "1"

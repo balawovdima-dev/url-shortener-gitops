@@ -56,5 +56,6 @@ spec:
   selector:
     app: backend
   ports:
-    - port: 80
+    - name: http # the ServiceMonitor (monitoring/config) scrapes by this name
+      port: 80
       targetPort: {{ $b.containerPort }}
