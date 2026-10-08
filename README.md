@@ -59,7 +59,7 @@ new commit on its next poll and rolled it out:
 15:04:08  rev=810d62a  Synced/Healthy      backend: 2 desired, 2 ready
 ```
 
-![ArgoCD: url-shortener-dev synced to 810d62a](docs/argocd-gitops-loop.png)
+![ArgoCD: url-shortener-dev synced to 810d62a](docs/argocd-gitops-loop.jpg)
 
 About 2.5 minutes from push to running, most of it the 3-minute polling
 interval. A GitHub webhook to ArgoCD would make it instant, but that needs
