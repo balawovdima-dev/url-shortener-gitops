@@ -1,0 +1,13 @@
+# prod: https://supabase.win, namespace url-shortener-prod (apps/prod.yaml).
+# Layered over values.yaml. Edit + push = deploy.
+publicUrl: https://supabase.win
+
+backend:
+  replicas: 2
+
+frontend:
+  replicas: 2
+
+ingress:
+  host: supabase.win
+  tlsSecret: origin-tls # Cloudflare Origin CA cert, created by the infra bootstrap

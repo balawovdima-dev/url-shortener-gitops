@@ -1,0 +1,6 @@
+# Read by `trivy config` (locally and in CI). The chart only renders with
+# values set; without them Trivy silently skips the whole chart.
+misconfiguration:
+  helm:
+    values:
+      - charts/url-shortener/values-prod.yaml

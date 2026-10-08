@@ -1,0 +1,37 @@
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  # Render the chart exactly as ArgoCD will, once per environment.
+  helm:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        env: [dev, prod]
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: azure/setup-helm@v5.0.1
+      - run: helm lint charts/url-shortener -f charts/url-shortener/values-${{ matrix.env }}.yaml
+      - run: helm template url-shortener charts/url-shortener -f charts/url-shortener/values-${{ matrix.env }}.yaml > /dev/null
+
+  trivy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          version: v0.75.0
+          scan-type: config
+          scan-ref: .
+          trivy-config: trivy.yaml
+          trivyignores: .trivyignore
+          severity: HIGH,CRITICAL
+          exit-code: "1"

@@ -1,0 +1,13 @@
+# dev: https://dev.supabase.win, namespace url-shortener-dev (apps/dev.yaml).
+# Layered over values.yaml. Edit + push = deploy.
+publicUrl: https://dev.supabase.win
+
+backend:
+  replicas: 1
+
+frontend:
+  replicas: 1
+
+ingress:
+  host: dev.supabase.win
+  tlsSecret: origin-tls # Cloudflare Origin CA cert, created by the infra bootstrap

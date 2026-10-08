@@ -1,0 +1,5 @@
+url-shortener {{ .Chart.Version }} deployed to namespace {{ .Release.Namespace }}.
+
+Backend reads DB credentials from Secret "{{ .Values.backend.existingSecret }}" (not managed by this chart).
+
+Open: {{ .Values.publicUrl }}

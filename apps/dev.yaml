@@ -1,0 +1,26 @@
+# url-shortener dev. Synced by the root Application (url-shortener-infra:
+# argocd/root.yaml), which watches this folder: adding a file here adds an
+# environment, deleting it removes the environment with all its resources.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: url-shortener-dev
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io # delete the app = delete its resources
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/balawovdima-dev/url-shortener-gitops.git
+    targetRevision: main
+    path: charts/url-shortener
+    helm:
+      valueFiles:
+        - values-dev.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: url-shortener-dev # created with its Secrets by the infra bootstrap
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true # manual kubectl changes are reverted to what git says
