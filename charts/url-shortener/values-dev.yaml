@@ -3,7 +3,7 @@
 publicUrl: https://dev.supabase.win
 
 backend:
-  replicas: 1
+  replicas: 2
 
 frontend:
   replicas: 1
