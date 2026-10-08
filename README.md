@@ -41,11 +41,44 @@ bootstrap creates them in each namespace from `terraform output`.
 
 ## The GitOps loop
 
-<!-- GITOPS-LOOP -->
+Scaling dev's backend from 1 to 2 replicas is a one-line commit
+([810d62a](https://github.com/balawovdima-dev/url-shortener-gitops/commit/810d62a)):
+
+```diff
+ backend:
+-  replicas: 1
++  replicas: 2
+```
+
+After `git push` (15:01:35) nobody touched the cluster. ArgoCD noticed the
+new commit on its next poll and rolled it out:
+
+```
+15:01:41  rev=c951504  Synced/Healthy      backend: 1 desired, 1 ready
+15:03:58  rev=810d62a  Synced/Progressing  backend: 2 desired, 1 ready
+15:04:08  rev=810d62a  Synced/Healthy      backend: 2 desired, 2 ready
+```
+
+![ArgoCD: url-shortener-dev synced to 810d62a](docs/argocd-gitops-loop.png)
+
+About 2.5 minutes from push to running, most of it the 3-minute polling
+interval. A GitHub webhook to ArgoCD would make it instant, but that needs
+ArgoCD reachable from the internet, which we deliberately avoid (see below).
 
 ## Self-heal
 
-<!-- SELF-HEAL -->
+With `selfHeal: true`, ArgoCD reverts drift. Scaling the same Deployment by
+hand (the same as changing `replicas` in `kubectl edit`):
+
+```
+15:04:17  kubectl -n url-shortener-dev scale deploy/backend --replicas=5
+15:04:17  Synced/Healthy  backend spec.replicas=5
+15:04:20  Synced/Healthy  backend spec.replicas=2   <- back to what git says
+```
+
+ArgoCD watches the resources it manages, so it caught the change and
+re-applied git's value within about 3 seconds. The only lasting way to change
+the cluster is a commit.
 
 ## Why pull (ArgoCD) and not push (CI runs `helm upgrade`)
 
