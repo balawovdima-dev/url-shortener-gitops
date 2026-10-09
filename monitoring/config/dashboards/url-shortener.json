@@ -513,7 +513,7 @@
       },
       "targets": [
         {
-          "expr": "{namespace=\"$namespace\", app=\"backend\"} |~ \"(?i)error|exception|traceback|\\\" 5[0-9][0-9] \"",
+          "expr": "{namespace=\"$namespace\", app=\"backend\"} |~ \"(?i)error|exception|traceback|\\\" 5[0-9][0-9]\"",
           "refId": "A",
           "datasource": {
             "type": "loki",
