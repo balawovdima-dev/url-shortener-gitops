@@ -5,6 +5,10 @@ publicUrl: https://dev.supabase.win
 backend:
   image:
     tag: e258dc3 # urlshortener-pet commit; dev first, then promote to prod
+  config:
+    LOG_LEVEL: info
+    # Alert test: half of dev's requests return 500. Revert this commit to stop.
+    CHAOS_ERROR_RATE: "0.5"
   replicas: 2
 
 frontend:
